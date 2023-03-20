@@ -1,0 +1,59 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct{
+    char **logs[5];
+    struct List* next;
+    struct List* operation;
+}List;
+
+int minOperations(char ** logs, int logsSize){
+    int result = 0;
+
+    List *new;
+    List *list;
+    list = (List *) malloc (sizeof(List));
+    new = (List *) malloc (sizeof(List));
+    if(new == NULL) exit(0); //testando se tem espaço
+    
+    if(new!=NULL){
+        new -> operation = *logs;
+        new -> next = *list;
+        *list = new;
+    }
+
+    for(int i = 0; i < 5; i++){
+        if(( result = strcmp(logs[i],"../")) == 0){
+            logsSize--;
+            if(logsSize < 0){
+                logsSize = 0;
+            }
+        } 
+            else {
+                if((strcmp(logs[i],"x/")) == 0){
+                    logsSize++;
+                }
+                else{
+                        printf("Failed!\n");
+                        return(0);
+                    }
+            }
+    }
+    printf("Short path to the origin paste: %d",logsSize);
+}
+
+int main (){
+    List* list;
+    list = (List *) malloc (sizeof(List));
+    char **logs[5];
+    int logsSize = 0;
+
+    for(int i = 0; i <=4; i++){
+        printf("Insert ../ to move to another paste \nInsert ./ to keep in the same paste \nInsert x/ to move to another paste \n\n");
+        scanf("%p",logs[i]);
+        insertionList(&list, *logs);
+    }
+    minOperations(*logs, logsSize);
+    free(list);
+}
