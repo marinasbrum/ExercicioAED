@@ -1,0 +1,247 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+//definições para não se perder
+#define COUNTER (sizeof(int)) // tamanho
+#define AUX_POINTERPOINTER (sizeof(void **))
+#define MENU (sizeof(int)) //menu
+#define NAME (sizeof(char) * 10) //nome
+#define AGE (sizeof(int)) //idade
+#define NUMBER (sizeof(int)) //numero
+#define FIRST (sizeof(int)) //primeira pessoa
+#define LAST (sizeof(int) + sizeof(void **)) //ultima pessoa
+#define NEXT (sizeof(char) * 10 + sizeof(int) + sizeof(int) + sizeof(void **)) //próxima
+#define PREVIOUS (sizeof(char) * 10 + sizeof(int) + sizeof(int)) //anterior
+
+//para incluir na lista
+void include(void *pBuffer, void *pAux){
+	void *pPerson = (void *)malloc(sizeof(char)*10+sizeof(int)+sizeof(long int)+sizeof(void **)*2);
+	void *pPrev= NULL;
+	int *counter = (int *)(pAux);
+
+	//teste da alocação de memória
+    if (!pPerson){
+        printf("Could not allocate required memory!\n");
+        return;
+    }
+
+	//entrada do usuário
+	printf("Type the name: ");
+	scanf("%s", (char *)pPerson);
+    getchar();
+	printf("Type the age: ");
+	scanf("%d", &*(int *)(pPerson + NAME));
+    getchar();
+	printf("Type the phone number: ");
+    scanf("%d", &*(int *)(pPerson + NAME + AGE));
+    getchar();
+
+	*(void **)(pPerson + NEXT) = NULL; 
+    *(void **)(pPerson + PREVIOUS) = NULL;
+
+	if (*counter == 0){
+        *(void **)(pAux + LAST) = pPerson;
+        *(void **)(pAux + FIRST) = pPerson;
+        *counter += 1;
+        return;
+    }
+	pBuffer = *(void **)(pAux + FIRST); 
+
+	while(pBuffer != NULL){
+        if(strcmp((char *)pPerson, (char *)pBuffer) < 0){
+            *(void **)(pPerson + PREVIOUS) = *(void **)(pBuffer + PREVIOUS);
+            *(void **)(pPerson + NEXT) = pBuffer;
+
+            if(*counter > 1 && *(void **)(pBuffer + PREVIOUS) != NULL){
+                pPrev = *(void **)(pBuffer + PREVIOUS);
+                *(void **)(pPrev + NEXT) = pPerson;
+            }
+
+            *(void **)(pBuffer + PREVIOUS) = pPerson;
+
+            if(*(void **)(pPerson + PREVIOUS) == NULL){
+                *(void **)(pAux + FIRST) = pPerson;
+            }
+            if(*counter == 1 && *(void **)(pBuffer + NEXT) == NULL){
+                *(void **)(pAux + LAST) = pBuffer;
+            }
+
+            *counter += 1; 
+            return;
+        }
+        if(*(void **)(pBuffer + NEXT) == NULL){
+            pPrev = pBuffer;
+        }
+        pBuffer = *(void **)(pBuffer + NEXT);
+    }
+    *(void **)(pPerson + PREVIOUS) = pPrev;
+    *(void **)(pPrev + NEXT) = pPerson;
+    *(void **)(pAux + LAST) = pPerson;
+
+    *counter += 1;
+    return;
+}
+
+
+//para remover um contato
+/*void remove(void *pAux, void *pBuffer){
+    void *pAux;
+    void *aux;
+    void *auxName = calloc(1, sizeof(char)*20);
+    int *counter = (int *)(pAux);
+
+    //se vazio
+    if(*(int *)pAux == 0){
+        printf("\nNothing found, insert something first!\n");
+        return;
+    }
+    printf("\nInsert the name to remove: "); 
+    scanf("%19[^\n]c", (char *)auxName); 
+    getchar();
+
+    pBuffer = *(void **)(pAux + FIRST); 
+    do{
+        if(strcmp((char *)pBuffer, (char *)auxName) == 0){
+            if(*(void **)(pBuffer + PREVIOUS) != NULL){
+                aux = *(void **)(pBuffer + PREVIOUS);
+                *(void **)(aux + NEXT) = *(void **)(pBuffer + NEXT);
+            }else{
+                *(void **)(pAux+FIRST) = *(void **)(pBuffer + NEXT);
+            }
+            if(*(void **)(pBuffer + NEXT) != NULL){
+                aux = *(void **)(pBuffer + NEXT); 
+                *(void **)(aux + PREVIOUS) = *(void **)(pBuffer + PREVIOUS);
+            }else{
+                *(void **)(pAux + LAST) = *(void **)(pBuffer + PREVIOUS);
+            }
+   
+            *counter -= 1;
+            free(pBuffer);
+            free(auxName);
+            return;
+        } 
+        pBuffer = *(void **)(pBuffer+NEXT); //receive next address
+        printf("Contact removed from the diary sucessfuly!");
+    }while(pBuffer != NULL);
+
+    printf("\nName not found!\n");
+    free(auxName);
+}
+*/
+
+void search(void *pAux, void *pExt){
+	int *counter = (int *)(pAux);
+    void *auxTwo = malloc(sizeof(char) * 10);
+
+    pExt = *(void **)(pAux + FIRST);
+
+    if(*counter == 0){
+        printf("\nNo name found\n\n");
+        free(auxTwo);
+        return;
+    } else {
+        printf("Type the name: \n");
+        scanf("%s", (char *)auxTwo);
+        getchar();
+
+        while(pExt != NULL){
+            if(strcmp(pExt,(char *)auxTwo) == 0){
+                printf("Name: %s\n", (char *)pExt);
+                printf("Age: %d\n", *(int *)(pExt + NAME));
+                printf("Phone number: %d\n\n", *(int *)(pExt + NAME + AGE));
+
+                free(auxTwo);
+                
+                return;
+            }
+            pExt = *(void **)(pExt + NEXT);
+        }
+    }
+    free(auxTwo);
+    return;
+}
+
+void list(void *pAux){
+	void *pPerson = NULL;
+    pPerson = *(void **)(pAux + FIRST);
+
+    int *counter = (int *)(pAux);
+
+    if(*counter == 0){
+        printf("\nEMPTY, insert something first\n");
+    } else {
+        printf("\nListing names\n");
+        while(pPerson != NULL){
+            printf("--------------------------\n");
+            printf("Name: %s\n", (char *)pPerson);
+            printf("Age: %d\n", *(int *)(pPerson + NAME));
+            printf("Phone Number: %d\n", *(int *)(pPerson + NAME + AGE));
+            printf("--------------------------\n");
+            pPerson = *(void **)(pPerson + NEXT);
+        }
+    }
+}
+
+int main(){
+	void *pBuffer;
+	pBuffer = (void *)calloc(1, sizeof(void **) + sizeof(int));
+	*(void **)pBuffer = NULL;
+
+	void *pAux;
+	pAux = malloc(COUNTER + AUX_POINTERPOINTER + AUX_POINTERPOINTER);
+	*(int *)pAux = 0; //counter
+
+	void *pExt = NULL;
+
+	if(!pBuffer || !pAux){
+        printf("Could not allocate required memory!\n");
+        return -1;
+    }
+
+	do{
+	printf("\n\n------------- MENU ---------------\n");
+	printf("       1. Add on the diary\n");
+	printf("       2. Remove from diary\n");
+	printf("       3. Search on the diary\n");
+	printf("       4. List all contacts\n");
+	printf("       5. Exit programm\n");
+	printf("----------------------------------\n");
+	printf("Type the option that you would like to access: ");
+	scanf("%d", (int *)(pBuffer));
+	getchar();
+
+	switch(*(int *)(pBuffer)) {
+
+		case 1: //include
+			system("clear || cls");
+			include(pBuffer, pAux);
+		break;
+/*
+		case 2: //remove
+			system("clear || cls");
+			remove(pAux, pBuffer);
+		break;
+*/
+		case 3: //search
+			system("clear || cls");
+			search(pAux, pExt);
+		break;
+
+		case 4: //list
+			system("clear || cls");
+			list(pAux);
+		break;
+
+		case 5: //exit
+			free(pBuffer);
+			free(pAux);
+			exit (0);
+		break;
+		
+		default:
+			printf("Invalid option, try again!");
+		break;
+	}
+	}while((*(int *)(pBuffer) >= 1) || (*(int *)(pBuffer) <= 5));
+}
