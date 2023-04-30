@@ -1,0 +1,61 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+int comparar(void *palavra1, void *palavra2) { 
+    int contador[26] = {0};
+    int i;
+    char *ppalavra1 = *(char**)palavra1;
+    char *ppalavra2 = *(char**)palavra2;
+
+    for (i = 0; ppalavra1[i]; i++) {
+        contador[ppalavra1[i]-'a']++;
+    }
+    for (i = 0; ppalavra2[i]; i++) {
+        contador[ppalavra2[i]-'a']--;
+    }
+    for (i = 0; ppalavra1[i]; i++) {
+        if (contador[ppalavra1[i]-'a'] != 0) {
+            return contador[ppalavra1[i]-'a'];
+        }
+    }
+    return 0;
+}
+
+char** removeAnagrams(char** palavras, int wordsSize, int* returnSize) {
+    int i, j;
+    char *ant = NULL;
+
+    qsort(palavras, wordsSize, sizeof(char*), comparar);
+    *returnSize = wordsSize;
+
+    for (i = 0, j = 0; i < wordsSize; i++) {
+        if (ant != NULL && comparar(&palavras[i], &ant) == 0) {
+            free(palavras[i]);
+            (*returnSize)--;
+        } else {
+            palavras[j++] = palavras[i];
+            ant = palavras[i];
+        }
+    }
+    return palavras;
+}
+
+int main() {
+    int i, returnSize;
+    char **palavras = malloc(5 * sizeof(char*));
+
+    palavras[0] = strdup("abba"); //abba 
+    palavras[1] = strdup("baba"); //baba
+    palavras[2] = strdup("bbaa"); //bbaa
+    palavras[3] = strdup("cd"); //cd
+    palavras[4] = strdup("cd"); //cd
+
+    char **resultado = removeAnagrams(palavras, 5, &returnSize);
+
+    for (i = 0; i < returnSize; i++) {
+        printf("%s ", resultado[i]);
+    }
+
+    return 0;
+}
